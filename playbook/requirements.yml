@@ -1,7 +1,8 @@
 ---
-  - src: git@github.com:netology-code/mnt-homeworks-ansible.git
+  - src: ssh://git@github.com/netology-code/mnt-homeworks-ansible.git
     scm: git
     version: "2.0.0"
+    force: yes
     name: elastic
   - src: git@github.com:MaxNelipin/kibana-role.git
     scm: git
