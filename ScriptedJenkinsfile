@@ -1,0 +1,25 @@
+node("agent-01"){
+    properties([parameters([booleanParam(defaultValue: false, name: 'prod_run')])])
+    stage("Git checkout"){
+        checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'c8f2dc93-57e2-4187-9669-75e746f5a9e1', url: 'git@github.com:MaxNelipin/8.4_Ansible_Roles.git']]])
+    }
+    stage("Download roles"){
+         dir('playbook') {
+            withCredentials([sshUserPrivateKey(credentialsId: 'c8f2dc93-57e2-4187-9669-75e746f5a9e1', keyFileVariable: 'KEY')]) {
+                sh 'ssh-agent sh -c "ssh-add ${KEY} && ansible-galaxy install -r requirements.yml --force"'
+            }
+         }
+    }
+    stage("Run playbook"){
+        dir('playbook') {
+            withCredentials([sshUserPrivateKey(credentialsId: 'YC_VM_Key', keyFileVariable: 'KEY_VM')]) {
+                if (params.prod_run){
+                     sh 'ansible-playbook site.yml -i inventory/prod --private-key ${KEY_VM}'
+                }
+                else {
+                     sh 'ansible-playbook site.yml -i inventory/prod --check --diff --private-key ${KEY_VM}'
+                }
+            }
+        }
+    }
+}
